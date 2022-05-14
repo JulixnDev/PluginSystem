@@ -5,6 +5,8 @@ import dev.julixn.ps.api.callbacks.PluginCallback
 import dev.julixn.ps.systems.Plugin
 import dev.julixn.ps.api.events.Event
 import dev.julixn.ps.api.eventsystem.EventSubscriber
+import dev.julixn.ps.api.license.LicenseController
+import dev.julixn.ps.api.license.UseLicense
 import dev.julixn.ps.api.logging.Logger
 import java.lang.reflect.Method
 import java.util.function.Consumer
@@ -21,6 +23,7 @@ class PluginManager(private val logger: Logger) {
         val pluginCallbacks: HashMap<Plugin, PluginCallback> = hashMapOf()
         val eventClasses: HashMap<KClass<out Event>, ArrayList<KClass<*>>> = hashMapOf()
         val eventFunctionEvent: HashMap<Method?, KClass<out Event>> = hashMapOf()
+        val licensePlugin: HashMap<Plugin, String> = hashMapOf()
     }
 
     private fun registerPlugin(plugin: Plugin) {
@@ -42,6 +45,9 @@ class PluginManager(private val logger: Logger) {
         if(!plugin.isValid())
             return false
 
+        if(plugin.clazz.annotations.find { it is UseLicense } != null)
+            licensePlugin[plugin] = (plugin.clazz.annotations.find { it is UseLicense } as UseLicense).token
+
         val callback = LoadingCallback()
         plugin.load(callback)
 
@@ -54,7 +60,11 @@ class PluginManager(private val logger: Logger) {
 
     fun enablePlugins(debug: Boolean = false) {
         plugins.forEach { (_, plugin) ->
-            val pluginCallback = PluginCallback()
+            val pluginCallback: PluginCallback = if(licensePlugin.contains(plugin))
+                PluginCallback(licensePlugin[plugin]?.let { LicenseController(it) })
+            else
+                PluginCallback(null)
+
             plugin.enable(pluginCallback)
             pluginCallbacks[plugin] = pluginCallback
 

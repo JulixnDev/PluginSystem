@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 
 class Plugin(pluginClass: KClass<out IPlugin>) : IPlugin {
 
-    private val clazz: KClass<out IPlugin> = pluginClass
+    val clazz: KClass<out IPlugin> = pluginClass
     private val plugin: IPlugin = clazz.java.getDeclaredConstructor().newInstance() as IPlugin
 
     override fun enable(callback: PluginCallback) {
