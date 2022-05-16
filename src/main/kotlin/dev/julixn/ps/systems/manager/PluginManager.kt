@@ -61,11 +61,18 @@ class PluginManager(private val logger: Logger) {
     fun enablePlugins(debug: Boolean = false) {
         plugins.forEach { (_, plugin) ->
             val pluginCallback: PluginCallback = if(licensePlugin.contains(plugin))
-                PluginCallback(licensePlugin[plugin]?.let { LicenseController(it) })
+                PluginCallback(licensePlugin[plugin]?.let { LicenseController(it, logger) })
             else
                 PluginCallback(null)
 
             plugin.enable(pluginCallback)
+
+            if(!pluginCallback.hasLicense) {
+                logger.log("Can't enable plugin: ${plugin.getName()}[${plugin.getVersion()}] : No valid license!", "[PM]")
+                return
+            }
+
+
             pluginCallbacks[plugin] = pluginCallback
 
             logger.log("Enabled plugin: ${plugin.getName()}[${plugin.getVersion()}]", "[PM]")

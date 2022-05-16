@@ -7,6 +7,7 @@ import kotlin.reflect.KClass
 class PluginCallback(private val licenseController: LicenseController?) {
 
     val eventHandler: ArrayList<KClass<out EventHandler>> = arrayListOf()
+    var hasLicense: Boolean = false
 
     fun registerEventHandler(handler: KClass<out EventHandler>) {
         if(!eventHandler.contains(handler))
@@ -22,4 +23,7 @@ class PluginCallback(private val licenseController: LicenseController?) {
         return licenseController
     }
 
+    fun setValidLicense(value: Boolean) {
+        this.hasLicense = value
+    }
 }
